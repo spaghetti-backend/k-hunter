@@ -1,0 +1,4 @@
+Typer {
+  max-width: 120;
+  max-height: 9;
+}
