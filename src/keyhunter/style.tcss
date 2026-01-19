@@ -1,4 +1,81 @@
-Typer {
-  max-width: 120;
-  max-height: 9;
+Settings {
+  min-width: 60;
+  width: auto;
+  height: auto;
+}
+
+TypingStatistic {
+  width: 100; 
+  height: 10;
+}
+Rule {
+  margin: 0;
+}
+
+Switch {
+  padding: 0;
+  border: none;
+  background: $background;
+}
+
+.statistic-row {
+  width: 60;
+}
+
+.statistic-data {
+  dock: right;
+}
+
+.settings {
+  scrollbar-size-vertical: 0;
+}
+
+.setting-row {
+  width: 60;
+  padding: 0 1;
+  &:focus-within {
+    tint: $secondary;
+  }
+}
+
+.height-auto {
+  height: auto;
+}
+
+.width-auto {
+  width: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.setting-label {
+  padding: 0 0 0 1;
+  width: 100%;
+  height: 100%;
+}
+
+.setting-select {
+  padding: 0 1 0 0;
+  dock: right;
+  width: 30;
+}
+
+.setting-input {
+  padding: 0 1 0 0;
+  dock: right;
+  width: 10;
+}
+
+.setting-switch {
+  padding: 0 1 0 0;
+  dock: right;
+  width: 6;
+}
+
+.setting-typer {
+  width: auto;
+  height: auto;
+  border: round;
 }
