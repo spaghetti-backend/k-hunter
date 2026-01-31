@@ -1,6 +1,6 @@
 import random
 from keyhunter.typer.typer import Typer
-from keyhunter.content_manager import ContentType
+from keyhunter.content.service import ContentType
 from textual import events
 from .schemas import AppSettings
 
@@ -9,9 +9,9 @@ class TyperSimulator(Typer):
     def on_settings_change(
         self, old_settings: AppSettings, new_settings: AppSettings
     ) -> None:
-        self._simulate_timer.pause()
+        self._simulate_timer.stop()
         super().on_settings_change(old_settings, new_settings)
-        self._simulate_timer.resume()
+        self.simulate(pause=False)
 
     def simulate(self, pause: bool = True):
         self._test_content = self.content_manager.generate(ContentType.SIMPLE, 400)
@@ -26,9 +26,12 @@ class TyperSimulator(Typer):
     def pause(self):
         self._simulate_timer.pause()
 
+    def stop(self):
+        self._simulate_timer.stop()
+
     def _simulate_key(self):
-        if random.random() < 0.85:
-            key = self.engine._current_segment.text
+        if random.random() < 0.85 and (current_segment := self.engine._current_segment):
+            key = current_segment.text
         else:
             key = "a"
         has_next = self.engine.process_key(events.Key(key=key, character=None))

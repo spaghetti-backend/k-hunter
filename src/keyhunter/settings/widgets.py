@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from textual import events, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Center, HorizontalGroup
 from textual.message import Message
@@ -9,11 +9,10 @@ from textual.validation import Number, Validator
 from textual.widget import Widget
 from textual.widgets import Button, Input, Label, Rule, Select, Switch
 
-from keyhunter.settings.simulator import TyperSimulator
-from keyhunter.typer.typer import Typer
+from .simulator import TyperSimulator
 
 from .messages import InvalidSetting, SettingChanged
-from .schemas import TyperEngine
+from .schemas import TyperEngine, TyperBorder
 from .service import AppSettings
 
 
@@ -213,8 +212,20 @@ class Settings(Widget):
                 default=typer_settings.typer_engine.value,
             )
         yield Rule(line_style="none")
+
+        typer_borders = list(TyperBorder.__args__)
+        with Center():
+            yield SelectSetting(
+                name="typer.border",
+                id="typer-border",
+                label="Border",
+                values=typer_borders,
+                default=typer_settings.border,
+            )
+        yield Rule(line_style="none")
+
         typer = TyperSimulator(
-            settings=settings.typer, id="setting-typer", classes="setting-typer"
+            settings=settings, id="setting-typer", classes="setting-typer"
         )
         typer.can_focus = False
         typer.simulate()
@@ -222,6 +233,7 @@ class Settings(Widget):
             yield typer
 
         yield Rule(line_style="none")
+
         sle_settings = typer_settings.single_line_engine
         with Center():
             yield SwitchSetting(
@@ -252,6 +264,12 @@ class Settings(Widget):
         message.stop()
 
         setting = message.name
+
+        # if setting == "typer.typer_engine":
+        #     typer_simulator = self.query_one("#setting-typer", TyperSimulator)
+        #     typer_simulator.stop()
+        #     typer_simulator.simulate(pause=False)
+
         if setting in self.invalid_settings:
             self.invalid_settings.remove(setting)
             self.mutate_reactive(Settings.invalid_settings)

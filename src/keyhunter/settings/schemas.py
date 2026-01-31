@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import (
     BaseModel,
@@ -8,6 +9,10 @@ from pydantic import (
     computed_field,
     model_validator,
 )
+
+TyperBorder = Literal[
+    "blank", "round", "solid", "thick", "double", "heavy", "hkey", "tall", "wide"
+]
 
 
 class TyperEngine(StrEnum):
@@ -73,7 +78,7 @@ class StandardEngineSettings(SizeConstraints):
 
 class TyperSettings(BaseSchema):
     typer_engine: TyperEngine = Field(default=TyperEngine.SINGLE_LINE)
-    border: str | None = "round"
+    border: TyperBorder = "blank"
     single_line_engine: SingleLineEngineSettings = Field(
         default_factory=SingleLineEngineSettings
     )
