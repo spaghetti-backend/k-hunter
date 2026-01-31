@@ -1,5 +1,8 @@
 import random
 from enum import Enum, auto
+from typing import Final
+
+DATASETS: Final = "src/keyhunter/content/datasets/"
 
 
 class ContentType(Enum):
@@ -7,18 +10,20 @@ class ContentType(Enum):
     WORDS = auto()
 
 
-class ContentManager:
+class ContentService:
     def __init__(self) -> None:
         self._seek = 0
 
     def generate(self, text_type: ContentType, length: int, offset: int = 0) -> str:
         match text_type:
             case ContentType.SIMPLE:
-                with open("src/keyhunter/datasets/en/simple.txt") as f:
+                filepath = f"{DATASETS}en/simple.txt"
+                with open(filepath) as f:
                     f.seek(offset)
                     return f.read(length)
             case ContentType.WORDS:
-                with open("src/keyhunter/datasets/en/common_1000.txt") as f:
+                filepath = f"{DATASETS}en/common_1000.txt"
+                with open(filepath) as f:
                     data = [f.readline() for _ in range(length)]
                 random.shuffle(data)
                 return "\n".join(data)
