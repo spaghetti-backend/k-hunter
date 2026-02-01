@@ -4,6 +4,7 @@ from textual.containers import CenterMiddle, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import ContentSwitcher, Footer
 
+from keyhunter.settings import constants
 from keyhunter.settings.schemas import AppSettings
 from keyhunter.settings.service import SettingsService
 from keyhunter.settings.widgets import Settings
@@ -36,25 +37,26 @@ class KeyHunter(App):
             )
         yield Footer()
 
-    def action_switch_widget(self, widget: str) -> None:
+    def action_switch_widget(self, widget_name: str) -> None:
         switcher = self.query_one(ContentSwitcher)
         if switcher.current == "settings-container":
             self.query_one("#settings", Settings).is_active = False
-        elif widget == "settings":
+        elif widget_name == "settings":
             self.query_one("#settings", Settings).is_active = True
 
-        switcher.current = widget + "-container"
-        typer = self.query_one(f"#{widget}")
-        typer.focus()
+        switcher.current = widget_name + "-container"
+        widget = self.query_one(f"#{widget_name}")
+        widget.focus()
 
-    def watch_settings(self, old, new) -> None:
-        if old.theme != new.theme:
-            self.theme = new.theme
+    def watch_settings(self, settings: AppSettings) -> None:
+        setting = settings.last_modified
+        if setting and setting.name == constants.THEME:
+            self.theme = setting.value
 
     @on(Settings.Update)
     def update_settings(self, message: Settings.Update) -> None:
         message.stop()
-        self.settings = self.settings_manager.update(message.data)
+        self.settings = self.settings_manager.update(message.setting)
 
     @on(Settings.Save)
     def save_settings(self, message: Settings.Save) -> None:

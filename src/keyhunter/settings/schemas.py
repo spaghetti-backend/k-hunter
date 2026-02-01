@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal, NamedTuple
 
 from pydantic import (
     BaseModel,
@@ -20,8 +20,13 @@ class TyperEngine(StrEnum):
     STANDARD = "Standard"
 
 
+class SettingUpdateInfo(NamedTuple):
+    name: str
+    value: Any
+
+
 class BaseSchema(BaseModel):
-    model_config = ConfigDict(validate_assignment=True)
+    model_config = ConfigDict(validate_assignment=True, frozen=True)
 
 
 class SizeConstraints(BaseSchema):
@@ -90,3 +95,5 @@ class TyperSettings(BaseSchema):
 class AppSettings(BaseSchema):
     theme: str = "textual-dark"
     typer: TyperSettings = Field(default_factory=TyperSettings)
+
+    last_modified: SettingUpdateInfo | None = Field(default=None, exclude=True)

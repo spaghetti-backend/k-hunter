@@ -7,6 +7,7 @@ from textual.strip import Strip
 from textual.widget import Widget
 
 from keyhunter.content.service import ContentService, ContentType
+from keyhunter.settings import constants
 from keyhunter.settings.schemas import (
     AppSettings,
     TyperEngine,
@@ -38,6 +39,7 @@ class Typer(Widget, can_focus=True):
         self.styles.border = (settings.typer.border, self.styles.base.color)
 
         self._set_engine(settings)
+        self.engine.set_theme(self.app.available_themes[settings.theme])
 
     def _set_engine(self, settings: AppSettings) -> None:
         match settings.typer.typer_engine:
@@ -50,21 +52,35 @@ class Typer(Widget, can_focus=True):
 
         self.styles.height = engine_settings.height + BORDER_SIZE
         self.styles.width = engine_settings.width + BORDER_SIZE
-        self.engine.set_theme(self.app.available_themes[settings.theme])
 
     def on_mount(self, event: events.Mount) -> None:
         self.watch(self.app, "settings", self.on_settings_change, init=True)
         self.engine.set_theme(self.app.available_themes[self.app.theme])
         return super()._on_mount(event)
 
-    def on_settings_change(
-        self, old_settings: AppSettings, new_settings: AppSettings
-    ) -> None:
-        if old_settings.theme != new_settings.theme:
-            self.engine.set_theme(self.app.available_themes[new_settings.theme])
+    def on_settings_change(self, settings: AppSettings) -> None:
+        setting = settings.last_modified
+        if not setting:
+            return
 
-        if old_settings.typer != new_settings.typer:
-            self._set_engine(new_settings)
+        match setting.name:
+            case constants.THEME:
+                self.engine.set_theme(self.app.available_themes[setting.value])
+            case constants.TYPER_BORDER:
+                self.styles.border = (setting.value, self.styles.base.color)
+            case constants.TYPER_ENGINE:
+                self._set_engine(settings)
+            case constants.SLE_PRE_CONTENT_SPACE:
+                if settings.typer.typer_engine == TyperEngine.SINGLE_LINE:
+                    self.engine.enable_pre_content_space = setting.value  # type: ignore
+            case constants.SLE_WIDTH | constants.SE_WIDTH:
+                width = int(setting.value)
+                self.engine.width = width
+                self.styles.width = width + BORDER_SIZE
+            case constants.SE_HEIGHT:
+                height = int(setting.value)
+                self.engine.height = height
+                self.styles.height = height + BORDER_SIZE
 
     def on_key(self, event: events.Key) -> None:
         if self.is_active_session:

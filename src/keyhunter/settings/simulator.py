@@ -6,11 +6,9 @@ from .schemas import AppSettings
 
 
 class TyperSimulator(Typer):
-    def on_settings_change(
-        self, old_settings: AppSettings, new_settings: AppSettings
-    ) -> None:
+    def on_settings_change(self, settings: AppSettings) -> None:
         self._simulate_timer.stop()
-        super().on_settings_change(old_settings, new_settings)
+        super().on_settings_change(settings)
         self.simulate(pause=False)
 
     def simulate(self, pause: bool = True):
@@ -30,7 +28,7 @@ class TyperSimulator(Typer):
         self._simulate_timer.stop()
 
     def _simulate_key(self):
-        if random.random() < 0.85 and (current_segment := self.engine._current_segment):
+        if random.random() < 0.9 and (current_segment := self.engine._current_segment):
             key = current_segment.text
         else:
             key = "a"

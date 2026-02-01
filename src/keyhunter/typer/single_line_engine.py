@@ -15,10 +15,19 @@ class SingleLineEngine(BaseEngine):
     def __init__(self, settings: SingleLineEngineSettings) -> None:
         super().__init__(settings)
 
-        self.enable_pre_content_space = settings.enable_pre_content_space
+        self._enable_pre_content_space = settings.enable_pre_content_space
         self._pre_content_space = (
             (settings.width // 2) if settings.enable_pre_content_space else 0
         )
+
+    @property
+    def enable_pre_content_space(self) -> bool:
+        return self._enable_pre_content_space
+
+    @enable_pre_content_space.setter
+    def enable_pre_content_space(self, active: bool) -> None:
+        self._enable_pre_content_space = active
+        self.resize()
 
     @property
     def _current_segment(self) -> Segment:

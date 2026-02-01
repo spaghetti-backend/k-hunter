@@ -8,6 +8,7 @@ TypingStatistic {
   width: 100; 
   height: 10;
 }
+
 Rule {
   margin: 0;
 }
@@ -53,7 +54,6 @@ Switch {
 .setting-label {
   padding: 0 0 0 1;
   width: 100%;
-  height: 100%;
 }
 
 .setting-select {
@@ -74,8 +74,3 @@ Switch {
   width: 6;
 }
 
-.setting-typer {
-  width: auto;
-  height: auto;
-  border: round;
-}

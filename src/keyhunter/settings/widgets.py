@@ -2,31 +2,32 @@ from typing import Any, Literal
 
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Center, HorizontalGroup
+from textual.containers import Center, Container, HorizontalGroup
 from textual.message import Message
 from textual.reactive import reactive
 from textual.validation import Number, Validator
 from textual.widget import Widget
 from textual.widgets import Button, Input, Label, Rule, Select, Switch
 
+from keyhunter.settings import constants
+
 from .simulator import TyperSimulator
 
 from .messages import InvalidSetting, SettingChanged
-from .schemas import TyperEngine, TyperBorder
+from .schemas import SettingUpdateInfo, TyperEngine, TyperBorder
 from .service import AppSettings
 
 
 class SelectSetting(HorizontalGroup):
     def __init__(
         self,
-        name: str,
         id: str,
         label: str,
         values: list[str],
         default: str | None = None,
         allow_blank: bool = False,
     ) -> None:
-        super().__init__(name=name, id=id, classes="setting-row")
+        super().__init__(id=id, classes="setting-row")
         self.label = label
         self.values = values
         self.default = default
@@ -34,12 +35,11 @@ class SelectSetting(HorizontalGroup):
         self._init = False
 
     def compose(self) -> ComposeResult:
-        yield Label(self.label, id=f"setting-{self.id}", classes="setting-label")
+        yield Label(self.label, classes="setting-label")
         yield Select.from_values(
             values=self.values,
             allow_blank=self.allow_blank,
             value=self.default,
-            id=f"setting-select-{self.id}",
             classes="setting-select",
             compact=True,
         )
@@ -53,7 +53,7 @@ class SelectSetting(HorizontalGroup):
 
         self.post_message(
             SettingChanged(
-                name=self.name,  # type: ignore
+                name=self.id,  # type: ignore
                 value=str(message.value),
             )
         )
@@ -62,28 +62,24 @@ class SelectSetting(HorizontalGroup):
 class InputSetting(HorizontalGroup):
     def __init__(
         self,
-        name: str,
         id: str,
         label: str,
         default: str | int | float,
         validators: list[Validator],
     ) -> None:
-        super().__init__(name=name, id=id, classes="setting-row")
+        super().__init__(id=id, classes="setting-row")
         self.label = label
         self.default = default
         self.validators = validators
         self._current = str(default)
 
     def compose(self) -> ComposeResult:
-        yield Label(
-            content=self.label, id=f"setting-{self.id}", classes="setting-label"
-        )
+        yield Label(content=self.label, classes="setting-label")
         yield Input(
             value=str(self.default),
             type=self._default_type(),
             validators=self.validators,
             select_on_focus=False,
-            id=f"setting-input-{self.id}",
             classes="setting-input",
             compact=True,
         )
@@ -114,33 +110,29 @@ class InputSetting(HorizontalGroup):
             self._current = message.value
             self.post_message(
                 SettingChanged(
-                    self.name,  # type: ignore
+                    self.id,  # type: ignore
                     message.value,
                 )
             )
         else:
-            self.post_message(InvalidSetting(self.name))  # type: ignore
+            self.post_message(InvalidSetting(self.id))  # type: ignore
 
 
 class SwitchSetting(HorizontalGroup):
     def __init__(
         self,
-        name: str,
         id: str,
         label: str,
         default: bool,
     ) -> None:
-        super().__init__(name=name, id=id, classes="setting-row")
+        super().__init__(id=id, classes="setting-row")
         self.label = label
         self.default = default
 
     def compose(self) -> ComposeResult:
-        yield Label(
-            content=self.label, id=f"setting-{self.id}", classes="setting-label"
-        )
+        yield Label(content=self.label, classes="setting-label")
         yield Switch(
             value=self.default,
-            id=f"setting-switch-{self.id}",
             classes="setting-switch height-auto",
         )
 
@@ -149,7 +141,7 @@ class SwitchSetting(HorizontalGroup):
         message.stop()
         self.post_message(
             SettingChanged(
-                self.name,  # type: ignore
+                self.id,  # type: ignore
                 message.value,
             )
         )
@@ -157,18 +149,17 @@ class SwitchSetting(HorizontalGroup):
 
 class Settings(Widget):
     class Save(Message):
-        def __init__(self, data: dict[str, Any]) -> None:
+        def __init__(self) -> None:
             super().__init__()
-            self.data = data
 
     class Update(Message):
-        def __init__(self, data: tuple[str, Any]) -> None:
+        def __init__(self, setting: SettingUpdateInfo) -> None:
             super().__init__()
-            self.data = data
+            self.setting = setting
 
-    data: dict[str, Any] = dict()
     invalid_settings: reactive[set] = reactive(set)
     is_active: reactive[bool] = reactive(False)
+    typer_engine: reactive[TyperEngine] = reactive(TyperEngine.STANDARD)
 
     def watch_invalid_settings(self):
         save_button = self.query_one("#save", Button)
@@ -184,6 +175,18 @@ class Settings(Widget):
         else:
             typer_simulator.pause()
 
+    def watch_typer_engine(self) -> None:
+        match self.typer_engine:
+            case TyperEngine.SINGLE_LINE:
+                container_to_show = "#sle-container"
+                container_to_hide = "#se-container"
+            case TyperEngine.STANDARD:
+                container_to_show = "#se-container"
+                container_to_hide = "#sle-container"
+
+        self.query_one(container_to_show).remove_class("hidden")
+        self.query_one(container_to_hide).add_class("hidden")
+
     def compose(self) -> ComposeResult:
         settings: AppSettings = self.app.settings  # type: ignore
 
@@ -193,8 +196,7 @@ class Settings(Widget):
         theme = self.app.theme
         with Center():
             yield SelectSetting(
-                name="theme",
-                id="theme-setting",
+                id="theme",
                 label="Theme",
                 values=themes,
                 default=theme,
@@ -205,8 +207,7 @@ class Settings(Widget):
         values = [engine.value for engine in TyperEngine]
         with Center():
             yield SelectSetting(
-                name="typer.typer_engine",
-                id="typer-setting",
+                id=constants.TYPER_ENGINE,
                 label="Typer",
                 values=values,
                 default=typer_settings.typer_engine.value,
@@ -216,8 +217,7 @@ class Settings(Widget):
         typer_borders = list(TyperBorder.__args__)
         with Center():
             yield SelectSetting(
-                name="typer.border",
-                id="typer-border",
+                id=constants.TYPER_BORDER,
                 label="Border",
                 values=typer_borders,
                 default=typer_settings.border,
@@ -235,46 +235,70 @@ class Settings(Widget):
         yield Rule(line_style="none")
 
         sle_settings = typer_settings.single_line_engine
-        with Center():
-            yield SwitchSetting(
-                name="typer.single_line_engine.enable_pre_content_space",
-                id="sle-pre-content-space",
-                label="Pre content space",
-                default=sle_settings.enable_pre_content_space,
-            )
-        yield Rule(line_style="none")
-
         sle_width_validator = Number(
             minimum=sle_settings.min_width, maximum=sle_settings.max_width
         )
-        with Center():
-            yield InputSetting(
-                name="typer.single_line_engine.width",
-                id="sle-width",
-                label="Width",
-                default=sle_settings.width,
-                validators=[sle_width_validator],
-            )
+        with Container(id="sle-container", classes="height-auto"):
+            with Center():
+                yield SwitchSetting(
+                    id=constants.SLE_PRE_CONTENT_SPACE,
+                    label="Pre content space",
+                    default=sle_settings.enable_pre_content_space,
+                )
+            yield Rule(line_style="none")
+
+            with Center():
+                yield InputSetting(
+                    id=constants.SLE_WIDTH,
+                    label="Width",
+                    default=sle_settings.width,
+                    validators=[sle_width_validator],
+                )
+
+        se_settings = typer_settings.standard_engine
+        se_width_validator = Number(
+            minimum=se_settings.min_width, maximum=se_settings.max_width
+        )
+        se_height_validator = Number(
+            minimum=se_settings.min_height, maximum=se_settings.max_height
+        )
+        with Container(id="se-container", classes="height-auto"):
+            with Center():
+                yield InputSetting(
+                    id=constants.SE_WIDTH,
+                    label="Width",
+                    default=se_settings.width,
+                    validators=[se_width_validator],
+                )
+            yield Rule(line_style="none")
+            with Center():
+                yield InputSetting(
+                    id=constants.SE_HEIGHT,
+                    label="Height",
+                    default=se_settings.height,
+                    validators=[se_height_validator],
+                )
         yield Rule(line_style="none")
 
         yield Button(label="save", id="save")
+
+    def on_mount(self) -> None:
+        self.typer_engine = self.app.settings.typer.typer_engine  # type: ignore
 
     @on(SettingChanged)
     def update_settings(self, message: SettingChanged) -> None:
         message.stop()
 
-        setting = message.name
+        setting_name = message.name
 
-        # if setting == "typer.typer_engine":
-        #     typer_simulator = self.query_one("#setting-typer", TyperSimulator)
-        #     typer_simulator.stop()
-        #     typer_simulator.simulate(pause=False)
+        if setting_name == constants.TYPER_ENGINE:
+            self.typer_engine = TyperEngine(message.value)
 
-        if setting in self.invalid_settings:
-            self.invalid_settings.remove(setting)
+        if setting_name in self.invalid_settings:
+            self.invalid_settings.remove(setting_name)
             self.mutate_reactive(Settings.invalid_settings)
 
-        self.post_message(self.Update((setting, message.value)))
+        self.post_message(self.Update(SettingUpdateInfo(setting_name, message.value)))
 
     @on(InvalidSetting)
     def update_invalid_settings(self, message: InvalidSetting) -> None:
@@ -285,4 +309,4 @@ class Settings(Widget):
     @on(Button.Pressed, "#save")
     def save_settings(self, message: Button.Pressed) -> None:
         message.stop()
-        self.post_message(self.Save(self.data))
+        self.post_message(self.Save())

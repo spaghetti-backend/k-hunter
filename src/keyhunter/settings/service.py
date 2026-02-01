@@ -4,7 +4,7 @@ from typing import Any
 import yaml
 from xdg_base_dirs import xdg_config_home
 
-from .schemas import AppSettings
+from .schemas import AppSettings, SettingUpdateInfo
 
 yaml.SafeDumper.add_multi_representer(
     StrEnum,
@@ -42,15 +42,16 @@ class SettingsService:
         except Exception:
             return AppSettings()
 
-    def update(self, data: tuple[str, Any]) -> AppSettings:
+    def update(self, setting: SettingUpdateInfo) -> AppSettings:
         settings = self._settings.model_dump()
 
         current = settings
-        parts = data[0].split(".")
+        parts = setting.name.split("-")
         for part in parts[:-1]:
             current = current.setdefault(part, {})
-        current[parts[-1]] = data[1]
+        current[parts[-1]] = setting.value
 
+        settings["last_modified"] = setting
         self._settings = AppSettings.model_validate(settings)
         return self._settings
 

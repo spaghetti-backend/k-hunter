@@ -87,9 +87,14 @@ class StandardEngine(BaseEngine):
         self.resize()
 
     def resize(self) -> None:
+        if not self._text:
+            return
+
         self._segments.clear()
+
         words = self._text.split()
         line = self._segmentize_word(words[0])
+
         for word in words[1:]:
             if (len(line) + len(word)) < self._width:
                 line.extend(self._segmentize_word(word))
