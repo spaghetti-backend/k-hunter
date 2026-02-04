@@ -1,32 +1,41 @@
 import random
-from enum import Enum, auto
+from importlib import resources
 from typing import Final
+
+from keyhunter.settings.schemas import ContentSettings
+
+from .schemas import ContentType
 
 DATASETS: Final = "src/keyhunter/content/datasets/"
 
 
-class ContentType(Enum):
-    SIMPLE = auto()
-    WORDS = auto()
-
-
 class ContentService:
-    def __init__(self) -> None:
-        self._seek = 0
+    def __init__(self, settings: ContentSettings) -> None:
+        self.content_type = settings.content_type
+        self.language = settings.language
+        self.content_lenght = settings.content_lenght
 
-    def generate(self, text_type: ContentType, length: int, offset: int = 0) -> str:
-        match text_type:
+    def generate(self) -> str:
+        content_files = resources.files("keyhunter.content.datasets")
+
+        match self.content_type:
             case ContentType.SIMPLE:
-                filepath = f"{DATASETS}en/simple.txt"
-                with open(filepath) as f:
-                    f.seek(offset)
-                    return f.read(length)
-            case ContentType.WORDS:
-                filepath = f"{DATASETS}en/common_1000.txt"
-                with open(filepath) as f:
-                    data = [f.readline() for _ in range(length)]
-                random.shuffle(data)
-                return "\n".join(data)
+                text = (
+                    content_files.joinpath(self.language.value)
+                    .joinpath("simple.txt")
+                    .read_text()
+                )
+                text = text.split("\n")
+                return random.choice(text)
+            case ContentType.COMMON:
+                text = (
+                    content_files.joinpath(self.language.value)
+                    .joinpath("common_1000.txt")
+                    .read_text()
+                )
+                words = text.split()
+                random.shuffle(words)
+                return "\n".join(words[: self.content_lenght])
 
     @property
     def placeholder(self) -> str:
