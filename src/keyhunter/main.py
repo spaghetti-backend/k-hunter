@@ -65,13 +65,7 @@ class KeyHunter(App):
 
     @on(Typer.Statistic)
     def show_typing_statistic(self, message: Typer.Statistic) -> None:
-        def process_statistic_action(action: tuple[int, str] | None) -> None:
-            if not action or action[0] == 1:
-                self.exit()
-
-            self.query_one("#typer", Typer).retry()
-
-        self.push_screen(TypingStatistic(message), process_statistic_action)
+        self.push_screen(TypingStatistic(message))
 
 
 def main():

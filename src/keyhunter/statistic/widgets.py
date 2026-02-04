@@ -23,8 +23,8 @@ class StatisticRow(HorizontalGroup):
 
 class TypingStatistic(ModalScreen[tuple[int, str]]):
     BINDINGS = [
-        ("r", "return('retry')", "Retry"),
-        ("q", "return('quit')", "Quit"),
+        ("r", "return", "Retry"),
+        ("q", "exit", "Quit"),
     ]
 
     def __init__(
@@ -64,8 +64,8 @@ class TypingStatistic(ModalScreen[tuple[int, str]]):
 
         yield Footer(show_command_palette=False)
 
-    def action_return(self, action: str) -> None:
-        if action == "retry":
-            self.dismiss((0, "retry"))
-        elif action == "quit":
-            self.dismiss((1, "quit"))
+    def action_return(self) -> None:
+        self.app.pop_screen()
+
+    def action_exit(self) -> None:
+        self.app.exit()
