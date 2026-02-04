@@ -8,3 +8,6 @@ SLE_WIDTH = "typer-single_line_engine-width"
 
 SE_WIDTH = "typer-standard_engine-width"
 SE_HEIGHT = "typer-standard_engine-height"
+
+CONTENT_TYPE = "content-content_type"
+CONTENT_LENGHT = "content-content_lenght"

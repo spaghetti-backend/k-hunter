@@ -9,6 +9,7 @@ from textual.validation import Number, Validator
 from textual.widget import Widget
 from textual.widgets import Button, Input, Label, Rule, Select, Switch
 
+from keyhunter.content.schemas import ContentType
 from keyhunter.settings import constants
 
 from .simulator import TyperSimulator
@@ -159,7 +160,6 @@ class Settings(Widget):
 
     invalid_settings: reactive[set] = reactive(set)
     is_active: reactive[bool] = reactive(False)
-    typer_engine: reactive[TyperEngine] = reactive(TyperEngine.STANDARD)
 
     def watch_invalid_settings(self):
         save_button = self.query_one("#save", Button)
@@ -175,21 +175,10 @@ class Settings(Widget):
         else:
             typer_simulator.pause()
 
-    def watch_typer_engine(self) -> None:
-        match self.typer_engine:
-            case TyperEngine.SINGLE_LINE:
-                container_to_show = "#sle-container"
-                container_to_hide = "#se-container"
-            case TyperEngine.STANDARD:
-                container_to_show = "#se-container"
-                container_to_hide = "#sle-container"
-
-        self.query_one(container_to_show).remove_class("hidden")
-        self.query_one(container_to_hide).add_class("hidden")
-
     def compose(self) -> ComposeResult:
         settings: AppSettings = self.app.settings  # type: ignore
 
+        # App settings
         themes = [
             theme for theme in self.app.available_themes if theme != "textual-ansi"
         ]
@@ -203,6 +192,7 @@ class Settings(Widget):
             )
         yield Rule(line_style="none")
 
+        # Typing settings
         typer_settings = settings.typer
         values = [engine.value for engine in TyperEngine]
         with Center():
@@ -280,10 +270,53 @@ class Settings(Widget):
                 )
         yield Rule(line_style="none")
 
-        yield Button(label="save", id="save")
+        # Content settings
+        content_settings = settings.content
+        with Center():
+            yield SelectSetting(
+                id=constants.CONTENT_TYPE,
+                label="Content type",
+                values=[ct.value for ct in ContentType],
+                default=content_settings.content_type.value,
+            )
+        yield Rule(line_style="none")
+
+        content_lenght_validator = Number(minimum=20, maximum=1000)
+        with Container(id="simple_content_type_settings", classes="height-auto"):
+            with Center():
+                yield InputSetting(
+                    id=constants.CONTENT_LENGHT,
+                    label="Content lenght",
+                    default=content_settings.content_lenght,
+                    validators=[content_lenght_validator],
+                )
+
+        with Center():
+            yield Button(label="save", id="save", compact=True)
 
     def on_mount(self) -> None:
-        self.typer_engine = self.app.settings.typer.typer_engine  # type: ignore
+        settings = self.app.settings  # type: ignore
+        self._toggle_typer_engine_settings(settings.typer.typer_engine)
+        self._toggle_content_settings(settings.content.content_type)
+
+    def _toggle_content_settings(self, content_type: ContentType) -> None:
+        container = self.query_one("#simple_content_type_settings")
+        if content_type == ContentType.COMMON:
+            container.remove_class("hidden")
+        else:
+            container.add_class("hidden")
+
+    def _toggle_typer_engine_settings(self, typer_engine: TyperEngine) -> None:
+        match typer_engine:
+            case TyperEngine.SINGLE_LINE:
+                container_to_show = "#sle-container"
+                container_to_hide = "#se-container"
+            case TyperEngine.STANDARD:
+                container_to_show = "#se-container"
+                container_to_hide = "#sle-container"
+
+        self.query_one(container_to_show).remove_class("hidden")
+        self.query_one(container_to_hide).add_class("hidden")
 
     @on(SettingChanged)
     def update_settings(self, message: SettingChanged) -> None:
@@ -292,7 +325,9 @@ class Settings(Widget):
         setting_name = message.name
 
         if setting_name == constants.TYPER_ENGINE:
-            self.typer_engine = TyperEngine(message.value)
+            self._toggle_typer_engine_settings(TyperEngine(message.value))
+        elif setting_name == constants.CONTENT_TYPE:
+            self._toggle_content_settings(ContentType(message.value))
 
         if setting_name in self.invalid_settings:
             self.invalid_settings.remove(setting_name)

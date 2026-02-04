@@ -1,6 +1,5 @@
 import random
 from keyhunter.typer.typer import Typer
-from keyhunter.content.service import ContentType
 from textual import events
 from .schemas import AppSettings
 
@@ -12,7 +11,7 @@ class TyperSimulator(Typer):
         self.simulate(pause=False)
 
     def simulate(self, pause: bool = True):
-        self._test_content = self.content_manager.generate(ContentType.SIMPLE, 400)
+        self._test_content = self.content_service.generate()
         self._test_content_idx = 0
         self.engine.prepare_content(self._test_content)
         self._simulate_timer = self.set_interval(0.15, self._simulate_key, pause=pause)

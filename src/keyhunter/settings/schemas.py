@@ -10,6 +10,8 @@ from pydantic import (
     model_validator,
 )
 
+from keyhunter.content.schemas import ContentType, Language
+
 TyperBorder = Literal[
     "blank", "round", "solid", "thick", "double", "heavy", "hkey", "tall", "wide"
 ]
@@ -81,7 +83,7 @@ class StandardEngineSettings(SizeConstraints):
     _max_height: int = PrivateAttr(default=9)
 
 
-class TyperSettings(BaseSchema):
+class TypingSettings(BaseSchema):
     typer_engine: TyperEngine = Field(default=TyperEngine.SINGLE_LINE)
     border: TyperBorder = "blank"
     single_line_engine: SingleLineEngineSettings = Field(
@@ -92,8 +94,15 @@ class TyperSettings(BaseSchema):
     )
 
 
+class ContentSettings(BaseSchema):
+    language: Language = Field(default=Language.ENGLISH)
+    content_type: ContentType = Field(default=ContentType.COMMON)
+    content_lenght: int = Field(default=100)
+
+
 class AppSettings(BaseSchema):
     theme: str = "textual-dark"
-    typer: TyperSettings = Field(default_factory=TyperSettings)
+    typer: TypingSettings = Field(default_factory=TypingSettings)
+    content: ContentSettings = Field(default_factory=ContentSettings)
 
     last_modified: SettingUpdateInfo | None = Field(default=None, exclude=True)
