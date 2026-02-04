@@ -38,8 +38,12 @@ class SingleLineEngine(BaseEngine):
         self._segments[self._current_segment_idx] = current_segment
 
     @property
-    def total_chars(self) -> int:
-        return len(self._segments) - self._pre_content_space
+    def typed_chars(self) -> int:
+        total_segments = len(self._segments)
+        untyped_segments = (
+            total_segments - len(self._type_results) - self._pre_content_space
+        )
+        return total_segments - self._pre_content_space - untyped_segments
 
     @property
     def correct_chars(self) -> int:

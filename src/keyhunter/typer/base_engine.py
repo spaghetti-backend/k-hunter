@@ -68,7 +68,7 @@ class BaseEngine(ABC):
 
     @property
     @abstractmethod
-    def total_chars(self) -> int: ...
+    def typed_chars(self) -> int: ...
 
     @property
     @abstractmethod

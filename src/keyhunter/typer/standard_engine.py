@@ -40,8 +40,14 @@ class StandardEngine(BaseEngine):
                 return line_index
 
     @property
-    def total_chars(self) -> int:
+    def _total_chars(self) -> int:
         return sum(len(line) for line in self._segments)
+
+    @property
+    def typed_chars(self) -> int:
+        total_segments = self._total_chars
+        untyped_segments = total_segments - len(self._type_results)
+        return total_segments - untyped_segments
 
     @property
     def correct_chars(self) -> int:
@@ -59,7 +65,7 @@ class StandardEngine(BaseEngine):
 
         self._current_segment_idx += 1
 
-        if self._current_segment_idx < self.total_chars:
+        if self._current_segment_idx < self._total_chars:
             self._update_current_segment(self.next_char_style)
             return True
         else:

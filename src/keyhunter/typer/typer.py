@@ -6,7 +6,7 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widget import Widget
 
-from keyhunter.content.service import ContentService, ContentType
+from keyhunter.content.service import ContentService
 from keyhunter.settings import constants
 from keyhunter.settings.schemas import (
     AppSettings,
@@ -34,7 +34,7 @@ class Typer(Widget, can_focus=True):
     def __init__(self, settings: AppSettings, **kwargs):
         super().__init__(**kwargs)
 
-        self.content_manager = ContentService()
+        self.content_service = ContentService(settings.content)
         self.is_active_session: bool = False
         self.styles.border = (settings.typer.border, self.styles.base.color)
 
@@ -81,6 +81,10 @@ class Typer(Widget, can_focus=True):
                 height = int(setting.value)
                 self.engine.height = height
                 self.styles.height = height + BORDER_SIZE
+            case constants.CONTENT_TYPE:
+                self.content_service.content_type = setting.value
+            case constants.CONTENT_LENGHT:
+                self.content_service.content_lenght = int(setting.value)
 
     def on_key(self, event: events.Key) -> None:
         if self.is_active_session:
@@ -92,9 +96,7 @@ class Typer(Widget, can_focus=True):
                 if not has_next:
                     self.stop_typing()
         elif event.key == "space":
-            self.engine.prepare_content(
-                self.content_manager.generate(ContentType.WORDS, 100)
-            )
+            self.engine.prepare_content(self.content_service.generate())
             self.start_typing()
         else:
             return None
@@ -110,7 +112,7 @@ class Typer(Widget, can_focus=True):
         self.post_message(
             self.Statistic(
                 datetime.now() - self._start_time,
-                self.engine.total_chars,
+                self.engine.typed_chars,
                 self.engine.correct_chars,
             )
         )
@@ -122,6 +124,6 @@ class Typer(Widget, can_focus=True):
 
     def render_line(self, y: int) -> Strip:
         if not self.is_active_session:
-            return self.engine.build_placeholder(y, self.content_manager.placeholder)
+            return self.engine.build_placeholder(y, self.content_service.placeholder)
 
         return self.engine.build_line(y)
