@@ -1,12 +1,10 @@
-from datetime import datetime, timedelta
-
 from textual.app import ComposeResult
 from textual.containers import CenterMiddle, HorizontalGroup
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Label
 
-from .schemas import TypingSummary
+from .schemas import TypingSessionSummary
 
 
 class StatisticRow(HorizontalGroup):
@@ -23,9 +21,13 @@ class StatisticRow(HorizontalGroup):
 
 
 class TypingSummaryView(Widget):
-    typing_summary: reactive[TypingSummary | None] = reactive(None, recompose=True)
+    typing_summary: reactive[TypingSessionSummary | None] = reactive(
+        None, recompose=True
+    )
 
-    def __init__(self, typing_summary: TypingSummary | None = None, **kwargs) -> None:
+    def __init__(
+        self, typing_summary: TypingSessionSummary | None = None, **kwargs
+    ) -> None:
         super().__init__(**kwargs)
         self.set_reactive(TypingSummaryView.typing_summary, typing_summary)
 
@@ -33,33 +35,28 @@ class TypingSummaryView(Widget):
         if not self.typing_summary:
             yield Label("Your typing statistics will be shown here")
         else:
-            accuracy = round(
-                (self.typing_summary.correct_chars / self.typing_summary.total_chars)
-                * 100,
-                2,
-            )
-            hits = f"{self.typing_summary.correct_chars}/{self.typing_summary.total_chars} ({accuracy}%)"
-            yield StatisticRow(label="Accuracy", data=hits, classes="statistic-row")
-
             yield StatisticRow(
-                label="Elapsed time",
-                data=(
-                    datetime.min + timedelta(seconds=self.typing_summary.elapsed_time)
-                ).strftime("%M:%S"),
+                label="Accuracy",
+                data=self.typing_summary.accuracy,
                 classes="statistic-row",
             )
 
-            cpm = round(
-                self.typing_summary.total_chars
-                / (self.typing_summary.elapsed_time / 60)
+            yield StatisticRow(
+                label="Elapsed time",
+                data=self.typing_summary.time,
+                classes="statistic-row",
             )
-            speed = f"{cpm} cpm"
-            yield StatisticRow(label="Speed", data=speed, classes="statistic-row")
+
+            yield StatisticRow(
+                label="Speed", data=self.typing_summary.speed, classes="statistic-row"
+            )
 
 
 class Profile(CenterMiddle):
     def compose(self) -> ComposeResult:
         yield TypingSummaryView(id="stat")
 
-    async def update_last_typing_result(self, typing_summary: TypingSummary) -> None:
+    async def update_last_typing_result(
+        self, typing_summary: TypingSessionSummary
+    ) -> None:
         self.query_one(TypingSummaryView).typing_summary = typing_summary

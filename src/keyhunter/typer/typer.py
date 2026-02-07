@@ -1,4 +1,3 @@
-from datetime import datetime
 from time import perf_counter
 from typing import TYPE_CHECKING
 
@@ -10,18 +9,17 @@ from textual.strip import Strip
 from textual.widget import Widget
 
 from keyhunter.content.service import ContentService
+from keyhunter.profile.schemas import TypingSessionSummary
 from keyhunter.settings import constants
 from keyhunter.settings.schemas import (
     AppSettings,
     TyperEngine,
 )
-from keyhunter.profile.schemas import TypingSummary
 
 from .single_line_engine import SingleLineEngine
 from .standard_engine import StandardEngine
 
 if TYPE_CHECKING:
-    from datetime import timedelta
     from keyhunter.main import KeyHunter
 
 BORDER_SIZE: int = 2
@@ -41,7 +39,7 @@ class TyperContainer(CenterMiddle, can_focus=True):
 class Typer(Widget, can_focus=True):
 
     class TypingCompleted(Message):
-        def __init__(self, typing_summary: TypingSummary) -> None:
+        def __init__(self, typing_summary: TypingSessionSummary) -> None:
             super().__init__()
             self.typing_summary = typing_summary
 
@@ -128,11 +126,12 @@ class Typer(Widget, can_focus=True):
         if not self.engine.typed_chars:
             return
 
-        elapsed_time = perf_counter() - self._start_time
-        typing_summary = TypingSummary(
-            elapsed_time=elapsed_time,
+        elapsed_time_ms = round((perf_counter() - self._start_time) * 1000)
+        typing_summary = TypingSessionSummary(
+            elapsed_time_ms=elapsed_time_ms,
             total_chars=self.engine.typed_chars,
             correct_chars=self.engine.correct_chars,
+            keystrokes=[],
         )
         self.post_message(self.TypingCompleted(typing_summary=typing_summary))
 
