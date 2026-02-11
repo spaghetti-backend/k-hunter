@@ -1,5 +1,5 @@
 from time import perf_counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from textual import events, on
 from textual.app import ComposeResult
@@ -9,7 +9,6 @@ from textual.strip import Strip
 from textual.widget import Widget
 
 from keyhunter.content.service import ContentService
-from keyhunter.profile.schemas import Keystroke, TypingSessionSummary
 from keyhunter.settings import constants
 from keyhunter.settings.schemas import (
     AppSettings,
@@ -18,6 +17,7 @@ from keyhunter.settings.schemas import (
 
 from .single_line_engine import SingleLineEngine
 from .standard_engine import StandardEngine
+from .schemas import Keystroke
 
 if TYPE_CHECKING:
     from keyhunter.main import KeyHunter
@@ -29,9 +29,9 @@ MILLISECONDS_MULTIPLIER = 1000
 class Typer(Widget, can_focus=True):
 
     class TypingCompleted(Message):
-        def __init__(self, typing_summary: TypingSessionSummary) -> None:
+        def __init__(self, typing_summary: Sequence[Keystroke]) -> None:
             super().__init__()
-            self.typing_summary = typing_summary
+            self.typing_summary = tuple(typing_summary)
 
     class TypingStarted(Message): ...
 
@@ -41,7 +41,7 @@ class Typer(Widget, can_focus=True):
         self.content_service = ContentService(settings.content)
         self._is_active_session = False
         self._session_start_time_ms = 0
-        self._keystroke_time_ms = 0
+        self._keystroke_start_time_ms = 0
         self._keystrokes = []
         self.styles.border = (settings.typer.border, self.styles.base.color)
 
@@ -101,7 +101,7 @@ class Typer(Widget, can_focus=True):
     def _process_keystroke(self, event: events.Key) -> None:
         if current_char := self.engine.current_char:
             current_time = self._timer_ms
-            keystroke_elapsed_time_ms = current_time - self._keystroke_time_ms
+            keystroke_elapsed_time_ms = current_time - self._keystroke_start_time_ms
             is_matched = current_char.text == event.character
             self._keystrokes.append(
                 Keystroke(
@@ -110,7 +110,7 @@ class Typer(Widget, can_focus=True):
                     elapsed_time_ms=keystroke_elapsed_time_ms,
                 )
             )
-            self._keystroke_time_ms = current_time
+            self._keystroke_start_time_ms = current_time
             self.engine.mark_current_char(is_matched)
 
             if self.engine.has_next:
@@ -131,32 +131,21 @@ class Typer(Widget, can_focus=True):
             return None
 
         event.stop()
+        event.prevent_default()
         self.refresh()
 
     def start_typing(self) -> None:
         self._keystrokes.clear()
         self._is_active_session = True
         self._session_start_time_ms = self._timer_ms
-        self._keystroke_time_ms = self._session_start_time_ms
+        self._keystroke_start_time_ms = self._session_start_time_ms
         self.post_message(self.TypingStarted())
 
     def stop_typing(self) -> None:
         self._is_active_session = False
 
-        if not self._keystrokes:
-            return
-
-        elapsed_time_ms = self._timer_ms - self._session_start_time_ms
-        typing_summary = TypingSessionSummary(
-            elapsed_time_ms=elapsed_time_ms,
-            total_chars=len(self._keystrokes),
-            correct_chars=sum([keystroke.is_matched for keystroke in self._keystrokes]),
-            keystrokes=self._keystrokes,
-        )
-        self.post_message(self.TypingCompleted(typing_summary=typing_summary))
-        print(self._session_start_time_ms)
-        print(self._timer_ms)
-        print(typing_summary)
+        if self._keystrokes:
+            self.post_message(self.TypingCompleted(typing_summary=self._keystrokes))
 
     def render_line(self, y: int) -> Strip:
         if not self._is_active_session:

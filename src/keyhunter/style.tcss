@@ -5,12 +5,6 @@ Settings {
   scrollbar-size-vertical: 0;
 }
 
-
-TypingSummaryView {
-  width: 40;
-  height: 3;
-}
-
 Rule {
   margin: 0;
 }
@@ -21,21 +15,32 @@ Switch {
   background: $background;
 }
 
-.statistic-row {
-  width: 40;
+StatItem {
+  width: 20;
+  height: 4;
+  border: round $panel;
 }
 
-.statistic-data {
-  dock: right;
+LastTypingSession {
+  align-horizontal: center;
+  border: hkey $panel-lighten-3;
+  border-title-align: center;
 }
 
+TypingSessions {
+  height: auto;
+  layout: horizontal;
+  align-horizontal: center;
+  border: hkey $panel-lighten-3;
+  border-title-align: center;
+}
 
-.setting-row {
-  width: 60;
-  padding: 0 1;
-  &:focus-within {
-    tint: $secondary;
-  }
+.vertical {
+  layout: vertical;
+}
+
+.horizontal {
+  layout: horizontal;
 }
 
 .height-auto {
@@ -48,6 +53,14 @@ Switch {
 
 .hidden {
   display: none;
+}
+
+.setting-row {
+  width: 60;
+  padding: 0 1;
+  &:focus-within {
+    tint: $secondary;
+  }
 }
 
 .setting-label {
@@ -72,4 +85,3 @@ Switch {
   dock: right;
   width: 6;
 }
-

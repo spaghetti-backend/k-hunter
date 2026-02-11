@@ -1,62 +1,108 @@
+from typing import Sequence
+
+from textual import events
 from textual.app import ComposeResult
-from textual.containers import CenterMiddle, HorizontalGroup
+from textual.containers import (
+    Center,
+    CenterMiddle,
+    Container,
+    HorizontalGroup,
+)
 from textual.reactive import reactive
-from textual.widget import Widget
-from textual.widgets import Label
+from textual.widgets import Label, Rule
 
-from .schemas import TypingSessionSummary
+from keyhunter.profile.service import ProfileService
+from keyhunter.typer.schemas import Keystroke
 
-
-class StatisticRow(HorizontalGroup):
-    def __init__(
-        self, label: str, data: str, id: str | None = None, classes: str | None = None
-    ) -> None:
-        super().__init__(id=id, classes=classes)
-        self.label = label
-        self.data = data
-
-    def compose(self) -> ComposeResult:
-        yield Label(content=self.label, classes="statistic-label")
-        yield Label(content=self.data, classes="statistic-data")
+from .schemas import TypingSessionSummary, TypingSummary
 
 
-class TypingSummaryView(Widget):
-    typing_summary: reactive[TypingSessionSummary | None] = reactive(
-        None, recompose=True
-    )
-
-    def __init__(
-        self, typing_summary: TypingSessionSummary | None = None, **kwargs
-    ) -> None:
+class StatItem(Container):
+    def __init__(self, label: str, value: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.set_reactive(TypingSummaryView.typing_summary, typing_summary)
+        self._label = label
+        self._value = value
 
     def compose(self) -> ComposeResult:
-        if not self.typing_summary:
-            yield Label("Your typing statistics will be shown here")
+        with Center():
+            yield Label(content=self._label, classes="statistic-label")
+        with Center():
+            yield Label(content=self._value, classes="statistic-value")
+
+
+class LastTypingSession(HorizontalGroup):
+    typing_summary: reactive[TypingSessionSummary] = reactive(
+        TypingSessionSummary(), recompose=True
+    )
+    BORDER_TITLE = "Last typing session"
+
+    def compose(self) -> ComposeResult:
+        yield StatItem("Accuracy", self.typing_summary.accuracy)
+        yield StatItem("Speed", self.typing_summary.speed)
+
+
+class TypingSessions(Container):
+    typing_summary: reactive[TypingSummary] = reactive(TypingSummary(), recompose=True)
+
+    def compose(self) -> ComposeResult:
+        with Container(classes="stat-group width-auto height-auto horizontal"):
+            yield StatItem("Time", self.typing_summary.time)
+            yield StatItem("Typing sessions", self.typing_summary.typing_sessions)
+        with Container(classes="stat-group width-auto height-auto horizontal"):
+            yield StatItem("Top speed", self.typing_summary.speed_max)
+            yield StatItem("Average speed", self.typing_summary.speed_avg)
+        with Container(classes="stat-group width-auto height-auto horizontal"):
+            yield StatItem("Top accuracy", self.typing_summary.accuracy_max)
+            yield StatItem("Average accuracy", self.typing_summary.accuracy_avg)
+
+    def on_resize(self, event: events.Resize):
+        if event.container_size.width < 120:
+            class_to_remove = "horizontal"
+            class_to_add = "vertical"
         else:
-            yield StatisticRow(
-                label="Accuracy",
-                data=self.typing_summary.accuracy,
-                classes="statistic-row",
-            )
+            class_to_remove = "vertical"
+            class_to_add = "horizontal"
 
-            yield StatisticRow(
-                label="Elapsed time",
-                data=self.typing_summary.time,
-                classes="statistic-row",
-            )
-
-            yield StatisticRow(
-                label="Speed", data=self.typing_summary.speed, classes="statistic-row"
-            )
+        for container in self.query(".stat-group"):
+            container.remove_class(class_to_remove)
+            container.add_class(class_to_add)
 
 
 class Profile(CenterMiddle):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._profile_service = ProfileService()
+
     def compose(self) -> ComposeResult:
-        yield TypingSummaryView(id="stat")
+        with Center():
+            yield LastTypingSession(id="last_session")
+        yield Rule(line_style="none")
+        with Center():
+            today_sessions = TypingSessions(id="today_sessions")
+            today_sessions.border_title = "Statistics for today"
+            yield today_sessions
+        yield Rule(line_style="none")
+        with Center():
+            all_time_sessions = TypingSessions(id="all_time_sessions")
+            all_time_sessions.border_title = "All time statistics"
+            yield all_time_sessions
+
+    def on_mount(self) -> None:
+        self._update_statistic_widgets()
+
+    def _update_statistic_widgets(self) -> None:
+        self.query_one("#last_session", LastTypingSession).typing_summary = (
+            self._profile_service.last_session
+        )
+        self.query_one("#today_sessions", TypingSessions).typing_summary = (
+            self._profile_service.today
+        )
+        self.query_one("#all_time_sessions", TypingSessions).typing_summary = (
+            self._profile_service.all_time
+        )
 
     async def update_last_typing_result(
-        self, typing_summary: TypingSessionSummary
+        self, typing_summary: Sequence[Keystroke]
     ) -> None:
-        self.query_one(TypingSummaryView).typing_summary = typing_summary
+        self._profile_service.add(typing_summary)
+        self._update_statistic_widgets()

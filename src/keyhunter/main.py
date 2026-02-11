@@ -3,11 +3,12 @@ from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import ContentSwitcher, Footer
 
+from keyhunter.profile.service import ProfileService
+from keyhunter.profile.widgets import Profile
 from keyhunter.settings import constants
 from keyhunter.settings.schemas import AppSettings
 from keyhunter.settings.service import SettingsService
 from keyhunter.settings.widgets import Settings
-from keyhunter.profile.widgets import Profile
 from keyhunter.typer.widgets import Typer, TyperContainer
 
 
@@ -23,8 +24,9 @@ class KeyHunter(App):
 
     def __init__(self) -> None:
         super().__init__()
-        self.settings_manager = SettingsService()
-        self.set_reactive(KeyHunter.settings, self.settings_manager.settings)
+        self.settings_service = SettingsService()
+        self.profile_service = ProfileService()
+        self.set_reactive(KeyHunter.settings, self.settings_service.settings)
         self.theme = self.settings.theme
 
     def compose(self) -> ComposeResult:
@@ -49,15 +51,15 @@ class KeyHunter(App):
     @on(Settings.Update)
     def update_settings(self, message: Settings.Update) -> None:
         message.stop()
-        self.settings = self.settings_manager.update(message.setting)
+        self.settings = self.settings_service.update(message.setting)
 
     @on(Settings.Save)
     def save_settings(self, message: Settings.Save) -> None:
         message.stop()
-        self.settings_manager.save()
+        self.settings_service.save()
 
     @on(Typer.TypingCompleted)
-    async def show_typing_statistic(self, message: Typer.TypingCompleted) -> None:
+    async def update_typing_statistic(self, message: Typer.TypingCompleted) -> None:
         await self.query_one(Profile).update_last_typing_result(message.typing_summary)
         self.action_switch_widget("profile")
 
