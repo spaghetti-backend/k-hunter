@@ -15,9 +15,9 @@ from keyhunter.settings.schemas import (
     TyperEngine,
 )
 
+from .schemas import Keystroke
 from .single_line_engine import SingleLineEngine
 from .standard_engine import StandardEngine
-from .schemas import Keystroke
 
 if TYPE_CHECKING:
     from keyhunter.main import KeyHunter
@@ -65,10 +65,8 @@ class Typer(Widget, can_focus=True):
         self.styles.height = engine_settings.height + BORDER_SIZE
         self.styles.width = engine_settings.width + BORDER_SIZE
 
-    def on_mount(self, event: events.Mount) -> None:
-        self.watch(self.app, "settings", self.on_settings_change, init=True)
-        self.engine.set_theme(self.app.available_themes[self.app.theme])
-        return super()._on_mount(event)
+    def on_mount(self) -> None:
+        self.watch(self.app, "settings", self.on_settings_change, init=False)
 
     def on_settings_change(self, settings: AppSettings) -> None:
         setting = settings.last_modified
@@ -161,5 +159,5 @@ class TyperContainer(CenterMiddle, can_focus=True):
         yield Typer(settings=self.app.settings)
 
     @on(events.Focus)
-    def handle_focus(self, _) -> None:
+    def handle_focus(self) -> None:
         self.query_one(Typer).focus()
