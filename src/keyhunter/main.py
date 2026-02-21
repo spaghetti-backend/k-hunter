@@ -2,6 +2,7 @@ from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import ContentSwitcher, Footer
 
+from keyhunter import const as CONST
 from keyhunter.profile.service import ProfileService
 from keyhunter.profile.widgets import Profile
 from keyhunter.settings.messages import SettingChanged
@@ -38,7 +39,7 @@ class KeyHunter(App):
         self.query_one(f"#{widget_name}").focus()
 
     def on_mount(self) -> None:
-        self.watch(self.settings, "_theme", self._on_theme_changed)
+        self.watch(self.settings, CONST.THEME_KEY, self._on_theme_changed)
 
     def _on_theme_changed(self, theme: str) -> None:
         self.theme = theme

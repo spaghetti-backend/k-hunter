@@ -82,8 +82,8 @@ class ContentLength(HorizontalGroup):
         content_settings = self.app.settings.content
         content_lenght = content_settings.content_lenght
         length_validator = Number(
-            minimum=content_settings._min_content_lenght,
-            maximum=content_settings._max_content_lenght,
+            minimum=content_settings.min_content_lenght,
+            maximum=content_settings.max_content_lenght,
         )
         yield InputSetting(
             command=SetContentLenghtCommand,

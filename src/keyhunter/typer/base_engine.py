@@ -12,12 +12,12 @@ class BaseEngine(ABC):
         self._current_char_idx = 0
 
         self._width = settings.width
-        self._min_width = settings._min_width
-        self._max_width = settings._max_width
+        self._min_width = settings.min_width
+        self._max_width = settings.max_width
 
         self._height = settings.height
-        self._min_height = settings._min_height
-        self._max_height = settings._max_height
+        self._min_height = settings.min_height
+        self._max_height = settings.max_height
 
     @property
     def width(self) -> int:

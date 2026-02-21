@@ -26,172 +26,80 @@ class TyperBorder(str, Enum):
 SettingsDict = dict[str, Any]
 
 
-class SizeConstraints(DOMNode):
-    _width: reactive[int] = reactive(CONST.SLE_WIDTH, init=False)
-    _height: reactive[int] = reactive(CONST.SLE_HEIGHT, init=False)
+class BaseSettings(DOMNode):
+    def __init__(self):
+        super().__init__()
+        for base in self.__class__.__bases__:
+            self.__annotations__.update(base.__annotations__)
 
-    _min_width = CONST.SLE_MIN_WIDTH
-    _max_width = CONST.SLE_MAX_WIDTH
+    def dump(self) -> SettingsDict:
+        settings = {}
+        for setting_name in self.__annotations__:
+            setting = getattr(self, setting_name)
+            if isinstance(setting, BaseSettings):
+                settings[setting_name] = setting.dump()
+            else:
+                settings[setting_name] = setting
 
-    _min_height = CONST.SLE_MIN_HEIGHT
-    _max_height = CONST.SLE_MAX_HEIGHT
+        return settings
 
-    @property
-    def width(self) -> int:
-        return self._width
+    def load(self, settings: SettingsDict, r: bool = True) -> None:
+        for setting_name in self.__annotations__:
+            setting = getattr(self, setting_name)
+            if isinstance(setting, BaseSettings):
+                setting.load(settings.get(setting_name, {}))
+            else:
+                setting_type = type(setting)
+                reactive_setting = self._reactives[setting_name]
+                setting_default = reactive_setting._default
+                value = setting_type(settings.get(setting_name, setting_default))
+                if r:
+                    self.set_reactive(reactive_setting, value)
+                else:
+                    setattr(self, setting_name, value)
 
-    @property
-    def height(self) -> int:
-        return self._height
 
-    def _apply_settings(self, settings: SettingsDict) -> None:
-        width = settings.get(CONST.WIDTH_KEY)
-        if width:
-            self.set_reactive(self.__class__._width, width)
-        else:
-            self._width = self._min_width
+class SizeConstraints(BaseSettings):
+    width: reactive[int] = reactive(CONST.SLE_WIDTH, init=False)
+    height: reactive[int] = reactive(CONST.SLE_HEIGHT, init=False)
 
-        height = settings.get(CONST.HEIGHT_KEY)
-        if height:
-            self.set_reactive(self.__class__._height, height)
-        else:
-            self._height = self._min_height
+    min_width = CONST.SLE_MIN_WIDTH
+    max_width = CONST.SLE_MAX_WIDTH
 
-    def _dump_settings(self) -> SettingsDict:
-        return {
-            CONST.WIDTH_KEY: self._width,
-            CONST.HEIGHT_KEY: self._height,
-        }
+    min_height = CONST.SLE_MIN_HEIGHT
+    max_height = CONST.SLE_MAX_HEIGHT
 
 
 class SingleLineEngineSettings(SizeConstraints):
-    _start_from_center: reactive[bool] = reactive(
+    start_from_center: reactive[bool] = reactive(
         CONST.SLE_START_FROM_CENTER, init=False
     )
 
-    @property
-    def start_from_center(self) -> bool:
-        return self._start_from_center
-
-    def _apply_settings(self, settings: SettingsDict) -> None:
-        super()._apply_settings(settings)
-
-        start_from_center = settings.get(CONST.SLE_START_FROM_CENTER_KEY)
-        if start_from_center is not None:
-            self.set_reactive(self.__class__._start_from_center, start_from_center)
-        else:
-            self._start_from_center = True
-
-    def _dump_settings(self) -> SettingsDict:
-        size_settings = super()._dump_settings()
-        return {
-            CONST.SLE_START_FROM_CENTER_KEY: self._start_from_center,
-            **size_settings,
-        }
-
 
 class StandardEngineSettings(SizeConstraints):
-    _min_height = CONST.SE_MIN_HEIGHT
-    _max_height = CONST.SE_MAX_HEIGHT
+    min_height = CONST.SE_MIN_HEIGHT
+    max_height = CONST.SE_MAX_HEIGHT
 
 
-class TyperSettings(DOMNode):
-    _engine: reactive[TyperEngine] = reactive(TyperEngine.SINGLE_LINE, init=False)
-    _border: reactive[TyperBorder] = reactive(TyperBorder.HKEY, init=False)
-    _single_line_engine: SingleLineEngineSettings = SingleLineEngineSettings()
-    _standard_engine: StandardEngineSettings = StandardEngineSettings()
-
-    @property
-    def engine(self) -> TyperEngine:
-        return self._engine
-
-    @property
-    def border(self) -> TyperBorder:
-        return self._border
-
-    @property
-    def single_line_engine(self) -> SingleLineEngineSettings:
-        return self._single_line_engine
-
-    @property
-    def standard_engine(self) -> StandardEngineSettings:
-        return self._standard_engine
-
-    def _apply_settings(self, settings: SettingsDict) -> None:
-        engine = settings.get(CONST.ENGINE_KEY)
-        if engine:
-            self.set_reactive(self.__class__._engine, TyperEngine(engine))
-        else:
-            self._engine = TyperEngine.SINGLE_LINE
-
-        border = settings.get(CONST.BORDER_KEY)
-        if border:
-            self.set_reactive(self.__class__._border, TyperBorder(border))
-        else:
-            self._border = TyperBorder.HKEY
-
-        self._standard_engine._apply_settings(settings.get(CONST.SE_KEY, {}))
-        self._single_line_engine._apply_settings(settings.get(CONST.SLE_KEY, {}))
-
-    def _dump_settings(self) -> SettingsDict:
-        return {
-            CONST.ENGINE_KEY: self._engine.value,
-            CONST.BORDER_KEY: self._border.value,
-            CONST.SLE_KEY: self._single_line_engine._dump_settings(),
-            CONST.SE_KEY: self._standard_engine._dump_settings(),
-        }
+class TyperSettings(BaseSettings):
+    engine: reactive[TyperEngine] = reactive(TyperEngine.SINGLE_LINE, init=False)
+    border: reactive[TyperBorder] = reactive(TyperBorder.HKEY, init=False)
+    single_line_engine: SingleLineEngineSettings = SingleLineEngineSettings()
+    standard_engine: StandardEngineSettings = StandardEngineSettings()
 
 
-class ContentSettings(DOMNode):
-    _language: reactive[ContentLanguage] = reactive(ContentLanguage.EN, init=False)
-    _content_type: reactive[ContentType] = reactive(ContentType.COMMON, init=False)
-    _content_lenght: reactive[int] = reactive(CONST.CONTENT_LENGHT, init=False)
-    _min_content_lenght = CONST.CONTENT_MIN_LENGHT
-    _max_content_lenght = CONST.CONTENT_MAX_LENGHT
-
-    @property
-    def language(self) -> ContentLanguage:
-        return self._language
-
-    @property
-    def content_type(self) -> ContentType:
-        return self._content_type
-
-    @property
-    def content_lenght(self) -> int:
-        return self._content_lenght
-
-    def _apply_settings(self, settings: SettingsDict) -> None:
-        language = settings.get(CONST.LANGUAGE_KEY)
-        if language:
-            self.set_reactive(self.__class__._language, ContentLanguage(language))
-        else:
-            self._language = ContentLanguage.EN
-
-        content_type = settings.get(CONST.CONTENT_TYPE_KEY)
-        if content_type:
-            self.set_reactive(self.__class__._content_type, ContentType(content_type))
-        else:
-            self._content_type = ContentType.COMMON
-
-        content_lenght = settings.get(CONST.CONTENT_LENGHT_KEY)
-        if content_lenght:
-            self.set_reactive(self.__class__._content_lenght, content_lenght)
-        else:
-            self._content_lenght = CONST.CONTENT_LENGHT
-
-    def _dump_settings(self) -> SettingsDict:
-        return {
-            CONST.LANGUAGE_KEY: self._language.value,
-            CONST.CONTENT_TYPE_KEY: self._content_type.value,
-            CONST.CONTENT_LENGHT_KEY: self._content_lenght,
-        }
+class ContentSettings(BaseSettings):
+    language: reactive[ContentLanguage] = reactive(ContentLanguage.EN, init=False)
+    content_type: reactive[ContentType] = reactive(ContentType.COMMON, init=False)
+    content_lenght: reactive[int] = reactive(CONST.CONTENT_LENGHT, init=False)
+    min_content_lenght = CONST.CONTENT_MIN_LENGHT
+    max_content_lenght = CONST.CONTENT_MAX_LENGHT
 
 
-class AppSettings(DOMNode):
-    _theme: reactive[str] = reactive(CONST.THEME, init=False)
-    _typer: TyperSettings = TyperSettings()
-    _content: ContentSettings = ContentSettings()
+class AppSettings(BaseSettings):
+    theme: reactive[str] = reactive(CONST.THEME, init=False)
+    typer: TyperSettings = TyperSettings()
+    content: ContentSettings = ContentSettings()
 
     def __init__(self) -> None:
         super().__init__()
@@ -199,19 +107,7 @@ class AppSettings(DOMNode):
         self._storage = SettingsStorage()
 
         settings = self._storage.load()
-        self._apply_settings(settings)
-
-    @property
-    def theme(self) -> str:
-        return self._theme
-
-    @property
-    def typer(self) -> TyperSettings:
-        return self._typer
-
-    @property
-    def content(self) -> ContentSettings:
-        return self._content
+        self.load(settings)
 
     def update(self, command: SettingChangeCommand):
         command.execute(self)
@@ -219,20 +115,7 @@ class AppSettings(DOMNode):
         self.save()
 
     def reset_to_default(self) -> None:
-        self._apply_settings({})
+        self.load({})
 
     def save(self) -> None:
-        self._storage.save(self._dump_settings())
-
-    def _apply_settings(self, settings: SettingsDict) -> None:
-        self._theme = settings.get(CONST.THEME_KEY, CONST.THEME)
-
-        self._typer._apply_settings(settings.get(CONST.TYPER_KEY, {}))
-        self._content._apply_settings(settings.get(CONST.CONTENT_KEY, {}))
-
-    def _dump_settings(self) -> SettingsDict:
-        return {
-            CONST.THEME_KEY: self._theme,
-            CONST.TYPER_KEY: self._typer._dump_settings(),
-            CONST.CONTENT_KEY: self._content._dump_settings(),
-        }
+        self._storage.save(self.dump())

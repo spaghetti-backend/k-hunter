@@ -88,8 +88,8 @@ class SingleLineEngineWidth(HorizontalGroup):
         sle_settings = self.app.settings.typer.single_line_engine
         current_width = sle_settings.width
         width_validator = Number(
-            minimum=sle_settings._min_width,
-            maximum=sle_settings._max_width,
+            minimum=sle_settings.min_width,
+            maximum=sle_settings.max_width,
         )
         yield InputSetting(
             command=SetSingleLineEngineWidthCommand,
@@ -144,8 +144,8 @@ class StandardEngineWidth(HorizontalGroup):
         se_settings = self.app.settings.typer.standard_engine
         current_width = se_settings.width
         width_validator = Number(
-            minimum=se_settings._min_width,
-            maximum=se_settings._max_width,
+            minimum=se_settings.min_width,
+            maximum=se_settings.max_width,
         )
         yield InputSetting(
             command=SetStandardEngineWidthCommand,
@@ -175,8 +175,8 @@ class StandardEngineHeight(HorizontalGroup):
         se_settings = self.app.settings.typer.standard_engine
         current_height = se_settings.height
         height_validator = Number(
-            minimum=se_settings._min_height,
-            maximum=se_settings._max_height,
+            minimum=se_settings.min_height,
+            maximum=se_settings.max_height,
         )
         yield InputSetting(
             command=SetStandardEngineHeightCommand,
