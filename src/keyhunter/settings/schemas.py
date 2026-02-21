@@ -6,8 +6,6 @@ from textual.reactive import reactive
 
 from keyhunter import const as CONST
 from keyhunter.content.schemas import ContentLanguage, ContentType
-from keyhunter.settings.commands import SettingChangeCommand
-from keyhunter.settings.storage import SettingsStorage
 from keyhunter.typer.schemas import TyperEngine
 
 
@@ -100,22 +98,3 @@ class AppSettings(BaseSettings):
     theme: reactive[str] = reactive(CONST.THEME, init=False)
     typer: TyperSettings = TyperSettings()
     content: ContentSettings = ContentSettings()
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._history: list[SettingChangeCommand] = []
-        self._storage = SettingsStorage()
-
-        settings = self._storage.load()
-        self.load(settings)
-
-    def update(self, command: SettingChangeCommand):
-        command.execute(self)
-        self._history.append(command)
-        self.save()
-
-    def reset_to_default(self) -> None:
-        self.load({})
-
-    def save(self) -> None:
-        self._storage.save(self.dump())

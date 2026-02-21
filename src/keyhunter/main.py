@@ -7,6 +7,7 @@ from keyhunter.profile.service import ProfileService
 from keyhunter.profile.widgets import Profile
 from keyhunter.settings.messages import SettingChanged
 from keyhunter.settings.schemas import AppSettings
+from keyhunter.settings.service import SettingsService
 from keyhunter.settings.widgets.settings_container import SettingsContainer
 from keyhunter.typer.widgets import Typer, TyperContainer
 
@@ -23,6 +24,7 @@ class KeyHunter(App):
         super().__init__()
         self.profile_service = ProfileService()
         self.settings = AppSettings()
+        self.settings_service = SettingsService(self.settings)
 
     def compose(self) -> ComposeResult:
         with ContentSwitcher(initial="typer"):
@@ -46,7 +48,7 @@ class KeyHunter(App):
 
     @on(SettingChanged)
     def on_setting_changed(self, m):
-        self.settings.update(m.command)
+        self.settings_service.update(m.command)
 
     @on(Typer.TypingCompleted)
     async def update_typing_statistic(self, message: Typer.TypingCompleted) -> None:
