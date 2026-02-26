@@ -1,11 +1,16 @@
 from typing import ClassVar, Literal
 
+from rich.style import Style
 from textual import on
-from textual.app import ComposeResult
+from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding, BindingType
+from textual.color import Gradient
 from textual.containers import HorizontalGroup
+from textual.message import Message
+from textual.renderables.bar import Bar as BarRenderable
 from textual.validation import Validator
-from textual.widgets import Input, Label, Select, Switch
+from textual.widgets import Input, Label, ProgressBar, Select, Switch
+from textual.widgets._progress_bar import Bar
 from textual.widgets._select import SelectOverlay
 
 from keyhunter.settings.commands import SettingChangeCommand
@@ -171,3 +176,148 @@ class SwitchSetting(HorizontalGroup):
                 command=self.command(event.value),
             )
         )
+
+
+class ThumbStyle(BarRenderable):
+    HALF_BAR_LEFT: str = "▐"
+    BAR: str = "█"
+    HALF_BAR_RIGHT: str = "▌"
+
+
+class Thumb(Bar):
+    def __init__(
+        self,
+        total_positions: float,
+        *,
+        id: str | None = None,
+        classes: str | None = None,
+        gradient: Gradient | None = None,
+    ):
+        super().__init__(
+            id=id,
+            classes=classes,
+            gradient=gradient,
+            bar_renderable=ThumbStyle,
+        )
+        self.thumb_ratio = 1 / total_positions
+
+    def render(self) -> RenderResult:
+        """Render the bar with the correct portion filled."""
+        if self.percentage is None:
+            return self.render_indeterminate()
+        else:
+            bar_style = self.get_component_rich_style("bar--bar")
+
+            return self.bar_renderable(
+                highlight_range=(
+                    self.percentage * self.size.width,
+                    (self.percentage + self.thumb_ratio) * self.size.width,
+                ),
+                highlight_style=Style.from_color(bar_style.color),
+                background_style=Style.from_color(bar_style.bgcolor),
+                gradient=self.gradient,
+            )
+
+
+class LinearSlider(ProgressBar, can_focus=True):
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("h,left,minus", "decrease", "Decrease", show=False),
+        Binding("l,right,plus,equals_sign", "increase", "Increase", show=False),
+    ]
+
+    class Changed(Message):
+        def __init__(self, value: int) -> None:
+            super().__init__()
+            self.value: int = value
+
+    def __init__(
+        self,
+        *,
+        positions_count: int,
+        current_value: int,
+        min_value: int,
+        max_value: int,
+        id: str | None = None,
+        classes: str | None = None,
+        gradient: Gradient | None = None,
+    ):
+        super().__init__(
+            positions_count,
+            id=id,
+            classes=classes,
+            gradient=gradient,
+        )
+        self._positions_count = positions_count
+        self._min_value = min_value
+        self._max_value = max_value
+        self._step = (self._max_value - self._min_value) / (self._positions_count - 1)
+        self._current_position = self._compute_position(current_value)
+
+    def compose(self) -> ComposeResult:
+        yield Thumb(total_positions=self._positions_count, id="bar").data_bind(
+            ProgressBar.percentage
+        ).data_bind(ProgressBar.gradient)
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.update(advance=self._current_position)
+
+    def action_increase(self) -> None:
+        if self._current_position < self._positions_count - 1:
+            self.update(advance=1)
+            self._current_position += 1
+            self.post_message(self.Changed(self._compute_value()))
+
+    def action_decrease(self) -> None:
+        if self._current_position > 0:
+            self.update(advance=-1)
+            self._current_position -= 1
+            self.post_message(self.Changed(self._compute_value()))
+
+    def _compute_value(self) -> int:
+        if self._current_position == 0 or self._positions_count <= 1:
+            return self._min_value
+        elif self._current_position == self._positions_count - 1:
+            return self._max_value
+        else:
+            return self._min_value + int(round(self._current_position * self._step))
+
+    def _compute_position(self, current_value: int) -> int:
+        if current_value == self._min_value:
+            return 0
+        elif current_value == self._max_value:
+            return self._positions_count - 1
+        else:
+            return int(round(current_value - self._min_value) / self._step)
+
+
+class LinearSliderSetting(HorizontalGroup):
+    def __init__(
+        self,
+        positions_count: int,
+        current_value: int,
+        min_value: int,
+        max_value: int,
+        command: type[SettingChangeCommand],
+        id: str,
+        label: str,
+    ) -> None:
+        super().__init__(id=id, classes="setting-row")
+        self.command = command
+        self.label = label
+        self.positions_count = positions_count
+        self.current_value = current_value
+        self._min_value = min_value
+        self._max_value = max_value
+
+    def compose(self) -> ComposeResult:
+        yield Label(self.label, classes="setting-label")
+        yield LinearSlider(
+            positions_count=self.positions_count,
+            current_value=self.current_value,
+            min_value=self._min_value,
+            max_value=self._max_value,
+        )
+
+    def on_linear_slider_changed(self, event: LinearSlider.Changed) -> None:
+        self.post_message(SettingChanged(self.command(event.value)))

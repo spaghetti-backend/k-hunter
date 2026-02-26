@@ -92,6 +92,26 @@ TypingSessions {
   padding: 1 0 0 0;
 }
 
+SelectionList {
+  padding: 1 0 0 0;
+  border: hkey $panel-lighten-3;
+  width: 40;
+}
+
+LinearSlider {
+  padding: 0 1 0 0;
+  dock: right;
+  width: 20;
+}
+
+Thumb {
+  width: 19;
+  &> .bar--bar {
+      color: $panel-lighten-3;
+      background: $surface;
+  }
+}
+
 .settings-group-container {
   width: auto;
   height: 1fr;
