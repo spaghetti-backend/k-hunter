@@ -1,0 +1,16 @@
+close
+detach
+fileno
+flush
+isatty
+read
+readable
+readline
+readlines
+seek
+seekable
+tell
+truncate
+writable
+write
+writelines
