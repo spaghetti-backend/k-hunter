@@ -66,19 +66,19 @@ It is recommended to install CLI applications in an isolated environment.
 ### Using uv
 
 ```bash
-uv tool install keyhunter
+uv tool install k-hunter
 ```
 
 ### Using pipx
 
 ```bash
-pipx install keyhunter
+pipx install k-hunter
 ```
 
 ### Using pip
 
 ```bash
-pip install keyhunter
+pip install k-hunter
 ```
 
 Using [pipx] or [uv] is recommended for CLI tools.
@@ -88,7 +88,7 @@ Using [pipx] or [uv] is recommended for CLI tools.
 Run the application with:
 
 ```bash
-keyhunter
+k-hunter
 ```
 
 Hotkeys are displayed in the bottom panel of the interface.
