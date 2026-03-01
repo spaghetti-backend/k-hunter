@@ -337,8 +337,8 @@ class KeywordsSettingsContainer(VerticalGroup):
     app: "KeyHunter"
 
     def compose(self) -> ComposeResult:
-        yield CommonKeywordsContent(classes="setting-container")
         yield KeywordsCountContainer(classes="setting-container")
+        yield CommonKeywordsContent(classes="setting-container")
 
     def on_mount(self) -> None:
         self.watch(

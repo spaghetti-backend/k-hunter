@@ -75,12 +75,13 @@ class SingleLineEngineSettings(SizeConstraints):
 
 
 class StandardEngineSettings(SizeConstraints):
+    height: reactive[int] = reactive(CONST.SE_HEIGHT, init=False)
     min_height = CONST.SE_MIN_HEIGHT
     max_height = CONST.SE_MAX_HEIGHT
 
 
 class TyperSettings(BaseSettings):
-    engine: reactive[TyperEngine] = reactive(TyperEngine.SINGLE_LINE, init=False)
+    engine: reactive[TyperEngine] = reactive(TyperEngine.STANDARD, init=False)
     border: reactive[TyperBorder] = reactive(TyperBorder.HKEY, init=False)
     single_line_engine: SingleLineEngineSettings = SingleLineEngineSettings()
     standard_engine: StandardEngineSettings = StandardEngineSettings()
