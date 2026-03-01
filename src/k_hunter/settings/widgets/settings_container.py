@@ -11,7 +11,7 @@ from .settings_sidebar import Sidebar
 from .typer_settings import TyperSettingsContainer
 
 if TYPE_CHECKING:
-    from keyhunter.main import KeyHunter
+    from k_hunter.main import KeyHunter
 
 
 class SettingsContainer(VerticalScroll, can_focus=False):

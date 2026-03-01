@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Sequence
 
-from keyhunter import const as CONST
-from keyhunter.typer.schemas import Keystroke
+from k_hunter import const as CONST
+from k_hunter.typer.schemas import Keystroke
 
 from .schemas import TypingSessionSummary, TypingSummary
 from .storage import SQLite3Storage

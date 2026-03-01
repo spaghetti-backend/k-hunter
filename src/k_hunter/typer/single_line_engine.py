@@ -4,7 +4,7 @@ from rich.segment import Segment
 from rich.style import Style
 from textual.strip import Strip
 
-from keyhunter.settings.schemas import SingleLineEngineSettings
+from k_hunter.settings.schemas import SingleLineEngineSettings
 
 from .base_engine import BaseEngine
 

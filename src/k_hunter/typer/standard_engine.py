@@ -4,7 +4,7 @@ from rich.segment import Segment
 from rich.style import Style
 from textual.strip import Strip
 
-from keyhunter.typer.base_engine import BaseEngine
+from k_hunter.typer.base_engine import BaseEngine
 
 
 class StandardEngine(BaseEngine):

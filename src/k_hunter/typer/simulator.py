@@ -1,6 +1,6 @@
 import random
 
-from keyhunter.typer.widgets import Typer
+from k_hunter.typer.widgets import Typer
 
 
 class TyperSimulator(Typer, can_focus=False):

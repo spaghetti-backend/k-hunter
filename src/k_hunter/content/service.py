@@ -2,8 +2,8 @@ import random
 from importlib import resources
 from importlib.abc import Traversable
 
-from keyhunter import const as CONST
-from keyhunter.settings.schemas import ContentSettings
+from k_hunter import const as CONST
+from k_hunter.settings.schemas import ContentSettings
 
 from .schemas import ContentType, NaturalLanguageCategory, ProgrammingLanguageCategory
 

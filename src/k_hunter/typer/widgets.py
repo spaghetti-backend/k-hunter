@@ -8,8 +8,8 @@ from textual.message import Message
 from textual.strip import Strip
 from textual.widget import Widget
 
-from keyhunter import const as CONST
-from keyhunter.settings.schemas import (
+from k_hunter import const as CONST
+from k_hunter.settings.schemas import (
     AppSettings,
     TyperBorder,
     TyperEngine,
@@ -20,7 +20,7 @@ from .single_line_engine import SingleLineEngine
 from .standard_engine import StandardEngine
 
 if TYPE_CHECKING:
-    from keyhunter.main import KeyHunter
+    from k_hunter.main import KeyHunter
 
 
 class Typer(Widget, can_focus=True):

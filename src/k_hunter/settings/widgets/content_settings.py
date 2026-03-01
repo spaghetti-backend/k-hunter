@@ -4,21 +4,21 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.widgets import Select, SelectionList
 
-from keyhunter import const as CONST
-from keyhunter.content.schemas import (
+from k_hunter import const as CONST
+from k_hunter.content.schemas import (
     ContentType,
     NaturalLanguage,
     NaturalLanguageCategory,
     ProgrammingLanguage,
     ProgrammingLanguageCategory,
 )
-from keyhunter.settings.commands import SetSettingCommand
-from keyhunter.settings.messages import SettingChanged
+from k_hunter.settings.commands import SetSettingCommand
+from k_hunter.settings.messages import SettingChanged
 
 from .components import LinearSlider, LinearSliderSetting, SelectSetting
 
 if TYPE_CHECKING:
-    from keyhunter.main import KeyHunter
+    from k_hunter.main import KeyHunter
 
 
 class ContentTypeSelector(HorizontalGroup):

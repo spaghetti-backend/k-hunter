@@ -4,15 +4,15 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
 from textual.widgets import ContentSwitcher, Footer
 
-from keyhunter import const as CONST
-from keyhunter.content.service import ContentService
-from keyhunter.profile.service import ProfileService
-from keyhunter.profile.widgets import Profile
-from keyhunter.settings.messages import SettingChanged
-from keyhunter.settings.schemas import AppSettings
-from keyhunter.settings.service import SettingsService
-from keyhunter.settings.widgets.settings_container import SettingsContainer
-from keyhunter.typer.widgets import Typer, TyperContainer
+from k_hunter import const as CONST
+from k_hunter.content.service import ContentService
+from k_hunter.profile.service import ProfileService
+from k_hunter.profile.widgets import Profile
+from k_hunter.settings.messages import SettingChanged
+from k_hunter.settings.schemas import AppSettings
+from k_hunter.settings.service import SettingsService
+from k_hunter.settings.widgets.settings_container import SettingsContainer
+from k_hunter.typer.widgets import Typer, TyperContainer
 
 
 class KeyHunter(App):

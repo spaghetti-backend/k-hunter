@@ -339,7 +339,7 @@ wheels = [
 ]
 
 [[package]]
-name = "keyhunter"
+name = "k-hunter"
 version = "0.3.0"
 source = { editable = "." }
 dependencies = [

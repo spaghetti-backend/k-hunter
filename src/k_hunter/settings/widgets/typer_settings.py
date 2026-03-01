@@ -4,10 +4,10 @@ from textual.app import ComposeResult
 from textual.containers import Center, HorizontalGroup, VerticalGroup
 from textual.widgets import Select, Switch
 
-from keyhunter import const as CONST
-from keyhunter.settings.schemas import TyperBorder
-from keyhunter.typer.schemas import TyperEngine
-from keyhunter.typer.simulator import TyperSimulator
+from k_hunter import const as CONST
+from k_hunter.settings.schemas import TyperBorder
+from k_hunter.typer.schemas import TyperEngine
+from k_hunter.typer.simulator import TyperSimulator
 
 from .components import (
     LinearSlider,

@@ -4,7 +4,7 @@ from typing import Iterator
 
 from platformdirs import user_data_path
 
-from keyhunter import const as CONST
+from k_hunter import const as CONST
 
 
 class SQLite3Storage:

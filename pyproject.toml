@@ -1,5 +1,5 @@
 [project]
-name = "keyhunter"
+name = "k-hunter"
 version = "0.3.0"
 description = "Keyboard typing trainer app "
 
@@ -30,12 +30,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/spaghetti-backend/keyhunter"
-Repository = "https://github.com/spaghetti-backend/keyhunter"
-Issues = "https://github.com/spaghetti-backend/keyhunter/issues"
+Homepage = "https://github.com/spaghetti-backend/k-hunter"
+Repository = "https://github.com/spaghetti-backend/k-hunter"
+Issues = "https://github.com/spaghetti-backend/k-hunter/issues"
 
 [project.scripts]
-keyhunter = "keyhunter.main:main"
+k-hunter = "k_hunter.main:main"
 
 [build-system]
 requires = ["uv_build>=0.9.29,<0.10"]

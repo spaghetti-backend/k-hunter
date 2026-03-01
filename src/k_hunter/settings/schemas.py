@@ -3,8 +3,8 @@ from typing import Any
 from textual.dom import DOMNode
 from textual.reactive import reactive
 
-from keyhunter import const as CONST
-from keyhunter.content.schemas import (
+from k_hunter import const as CONST
+from k_hunter.content.schemas import (
     CodeSampleCategory,
     ContentType,
     NaturalLanguage,
@@ -12,7 +12,7 @@ from keyhunter.content.schemas import (
     ProgrammingLanguage,
     ProgrammingLanguageCategory,
 )
-from keyhunter.typer.schemas import TyperBorder, TyperEngine
+from k_hunter.typer.schemas import TyperBorder, TyperEngine
 
 SettingsDict = dict[str, Any]
 

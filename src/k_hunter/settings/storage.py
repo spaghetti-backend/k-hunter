@@ -3,7 +3,7 @@ from typing import Any
 
 from platformdirs import user_config_path
 
-from keyhunter import const as CONST
+from k_hunter import const as CONST
 
 
 class SettingsStorage:

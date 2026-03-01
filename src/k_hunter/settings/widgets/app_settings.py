@@ -4,12 +4,12 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.widgets import Select
 
-from keyhunter import const as CONST
+from k_hunter import const as CONST
 
 from .components import SelectSetting
 
 if TYPE_CHECKING:
-    from keyhunter.main import KeyHunter
+    from k_hunter.main import KeyHunter
 
 
 class ThemeSelector(HorizontalGroup):

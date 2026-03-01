@@ -13,9 +13,9 @@ from textual.widgets import Input, Label, ProgressBar, Select, Switch
 from textual.widgets._progress_bar import Bar
 from textual.widgets._select import SelectOverlay
 
-from keyhunter.settings.commands import SetSettingCommand
-from keyhunter.settings.messages import SettingChanged
-from keyhunter.settings.schemas import BaseSettings
+from k_hunter.settings.commands import SetSettingCommand
+from k_hunter.settings.messages import SettingChanged
+from k_hunter.settings.schemas import BaseSettings
 
 
 class VimSelect(Select):

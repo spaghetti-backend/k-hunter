@@ -4,10 +4,10 @@ from typing import Final
 #
 # Settings
 #
-APP_NAME: Final = "keyhunter"
+APP_NAME: Final = "k_hunter"
 TYPING_SESSIONS_STORAGE_NAME: Final = "stat.db"
 SETTINGS_STORAGE_NAME: Final = "settings.json"
-DATASETS_STORAGE_PATH: Final = "keyhunter.content.datasets"
+DATASETS_STORAGE_PATH: Final = "k_hunter.content.datasets"
 NATURAL_LANGUAGE_KEY: Final = "natural_language"
 PROGRAMMING_LANGUAGE_KEY: Final = "programming_language"
 SIMPLE_FILENAME: Final = "simple_text/simple"
