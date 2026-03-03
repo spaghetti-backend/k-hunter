@@ -249,8 +249,8 @@ class Thumb(Bar):
 
 class LinearSlider(ProgressBar, can_focus=True):
     BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("h,left,minus", "decrease", "Decrease", show=False),
-        Binding("l,right,plus,equals_sign", "increase", "Increase", show=False),
+        Binding("minus,h,left", "decrease", "Decrease"),
+        Binding("plus,l,right,equals_sign", "increase", "Increase"),
     ]
 
     class Changed(Message):
@@ -355,6 +355,11 @@ class LinearSliderSetting(HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         yield Label(self.label, classes="setting-label")
+        yield Label(
+            f"{self.current_value:>3}",
+            id="slider-value-label",
+            classes="slider-value-label",
+        )
         yield LinearSlider(
             positions_count=self.positions_count,
             current_value=self.current_value,
@@ -363,6 +368,7 @@ class LinearSliderSetting(HorizontalGroup):
         )
 
     def on_linear_slider_changed(self, event: LinearSlider.Changed) -> None:
+        self.query_one("#slider-value-label", Label).update(f"{event.value:>3}")
         self.post_message(
             SettingChanged(
                 SetSettingCommand(

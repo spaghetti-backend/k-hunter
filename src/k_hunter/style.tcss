@@ -112,6 +112,11 @@ Thumb {
   }
 }
 
+.slider-value-label {
+  dock: right;
+  width: 24;
+}
+
 .settings-group-container {
   width: auto;
   height: 1fr;
